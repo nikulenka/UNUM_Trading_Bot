@@ -1,8 +1,11 @@
 import os
 from functools import lru_cache
-from typing import Any
 
-from pydantic_settings import BaseSettings, SettingsConfigDict, PydanticBaseSettingsSource
+from pydantic_settings import (
+    BaseSettings,
+    SettingsConfigDict,
+    PydanticBaseSettingsSource,
+)
 
 SUPPORTED_PROFILES = ("dev", "test", "prod")
 
@@ -20,9 +23,19 @@ def _get_test_profile_defaults() -> dict[str, str]:
         return {}
     
     return {
-        "POSTGRES_DSN": "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/app",
-        "REDIS_DSN": "redis://127.0.0.1:6379/0",
+        "postgres_dsn": "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/app",
+        "redis_dsn": "redis://127.0.0.1:6379/0",
     }
+
+
+class TestProfileDefaultsSource(PydanticBaseSettingsSource):
+    def get_field_value(self, field, field_name: str):
+        defaults = _get_test_profile_defaults()
+        value = defaults.get(field_name)
+        return value, field_name, False
+
+    def __call__(self) -> dict[str, str]:
+        return _get_test_profile_defaults()
 
 
 class Settings(BaseSettings):
@@ -38,12 +51,6 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    def __init__(self, **values: Any) -> None:
-        defaults = _get_test_profile_defaults()
-        for key, default_value in defaults.items():
-            if key not in values:
-                values[key] = default_value
-        super().__init__(**values)
 
     @classmethod
     def settings_customise_sources(
@@ -59,6 +66,7 @@ class Settings(BaseSettings):
             env_settings,
             dotenv_settings,
             file_secret_settings,
+            TestProfileDefaultsSource(settings_cls),
         )
 
 
@@ -68,4 +76,4 @@ def validate_settings() -> Settings:
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings(_env_file=_get_env_files())
+    return Settings(_env_file=_get_env_files())  # type: ignore[call-arg]

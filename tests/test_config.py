@@ -62,7 +62,7 @@ def test_settings_load_from_env_files(tmp_path, monkeypatch, clear_cache):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("APP_ENV", "test")
     
-    settings = Settings(_env_file=config_module._get_env_files())
+    settings = Settings(_env_file=config_module._get_env_files())  # type: ignore[call-arg]
     
     assert settings.app_env == "test"
     assert settings.app_port == 9000
@@ -95,7 +95,7 @@ def test_env_vars_priority_over_env_files(tmp_path, monkeypatch, clear_cache):
     monkeypatch.setenv("POSTGRES_DSN", "postgresql+asyncpg://env:env@localhost:5432/env_db")
     monkeypatch.setenv("REDIS_DSN", "redis://localhost:6379/2")
     
-    settings = Settings(_env_file=config_module._get_env_files())
+    settings = Settings(_env_file=config_module._get_env_files())  # type: ignore[call-arg]
     
     assert settings.app_port == 9999
     assert settings.log_level == "ERROR"
@@ -115,7 +115,7 @@ def test_default_values(tmp_path, monkeypatch, clear_cache):
     monkeypatch.setenv("APP_ENV", "dev")
     # Don't set APP_PORT, LOG_LEVEL
     
-    settings = Settings(_env_file=config_module._get_env_files())
+    settings = Settings(_env_file=config_module._get_env_files())  # type: ignore[call-arg]
     
     assert settings.app_env == "dev"
     assert settings.app_port == 8000
@@ -133,7 +133,7 @@ def test_required_fields_missing(tmp_path, monkeypatch, clear_cache):
     monkeypatch.delenv("REDIS_DSN", raising=False)
     
     with pytest.raises(ValidationError):
-        Settings(_env_file=config_module._get_env_files())
+        Settings(_env_file=config_module._get_env_files())  # type: ignore[call-arg]
 
 
 def test_validate_settings_success(tmp_path, monkeypatch, clear_cache):
@@ -168,7 +168,7 @@ def test_test_profile_uses_ci_compatible_default_dsns(tmp_path, monkeypatch, cle
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("APP_ENV", "test")
     
-    settings = Settings(_env_file=config_module._get_env_files())
+    settings = Settings(_env_file=config_module._get_env_files())  # type: ignore[call-arg]
     
     assert settings.app_env == "test"
     assert settings.postgres_dsn == "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/app"
