@@ -19,3 +19,42 @@
 ### Configuration priority:
 - Environment variables have priority over env files
 - For `APP_ENV=test`, safe CI-compatible DSN defaults are used if not explicitly set
+
+## Docker
+
+### Start the full stack
+
+```bash
+docker compose up --build -d
+```
+
+This starts:
+- `app` — FastAPI application on `http://localhost:8000`
+- `postgres` — PostgreSQL with persistent data in the `postgres_data` volume
+- `redis` — Redis
+
+The `app` service starts only after `postgres` and `redis` report healthy.
+
+### Check status
+
+```bash
+docker compose ps
+docker compose logs -f app
+```
+
+### Health endpoints
+
+- `http://localhost:8000/health`
+- `http://localhost:8000/ready`
+
+### Stop the stack
+
+```bash
+docker compose down
+```
+
+### Stop the stack and remove Postgres data
+
+```bash
+docker compose down -v
+```
