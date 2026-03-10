@@ -7,8 +7,13 @@ from app.core.config import Settings, get_settings, validate_settings
 
 
 @pytest.fixture
-def clear_cache():
+def clear_cache(monkeypatch):
     get_settings.cache_clear()
+    monkeypatch.delenv("APP_ENV", raising=False)
+    monkeypatch.delenv("APP_PORT", raising=False)
+    monkeypatch.delenv("LOG_LEVEL", raising=False)
+    monkeypatch.delenv("POSTGRES_DSN", raising=False)
+    monkeypatch.delenv("REDIS_DSN", raising=False)
     yield
     get_settings.cache_clear()
 
@@ -107,7 +112,8 @@ def test_default_values(tmp_path, monkeypatch, clear_cache):
     )
     
     monkeypatch.chdir(tmp_path)
-    # Don't set APP_ENV, APP_PORT, LOG_LEVEL
+    monkeypatch.setenv("APP_ENV", "dev")
+    # Don't set APP_PORT, LOG_LEVEL
     
     settings = Settings(_env_file=config_module._get_env_files())
     
@@ -122,6 +128,7 @@ def test_required_fields_missing(tmp_path, monkeypatch, clear_cache):
     env_file.write_text("")
     
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("APP_ENV", "dev")
     monkeypatch.delenv("POSTGRES_DSN", raising=False)
     monkeypatch.delenv("REDIS_DSN", raising=False)
     
@@ -149,6 +156,7 @@ def test_validate_settings_failure(tmp_path, monkeypatch, clear_cache):
     env_file.write_text("")
     
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("APP_ENV", "dev")
     monkeypatch.delenv("POSTGRES_DSN", raising=False)
     monkeypatch.delenv("REDIS_DSN", raising=False)
     
@@ -156,14 +164,18 @@ def test_validate_settings_failure(tmp_path, monkeypatch, clear_cache):
         validate_settings()
 
 
-def test_get_settings_is_cached(tmp_path, monkeypatch, clear_cache):
-    # Create .env file with required fields
-    env_file = tmp_path / ".env"
-    env_file.write_text(
-        "POSTGRES_DSN=postgresql+asyncpg://test:test@localhost:5432/test_db\n"
-        "REDIS_DSN=redis://localhost:6379/0\n"
-    )
+def test_test_profile_uses_ci_compatible_default_dsns(tmp_path, monkeypatch, clear_cache):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("APP_ENV", "test")
     
+    settings = Settings(_env_file=config_module._get_env_files())
+    
+    assert settings.app_env == "test"
+    assert settings.postgres_dsn == "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/app"
+    assert settings.redis_dsn == "redis://127.0.0.1:6379/0"
+
+
+def test_get_settings_is_cached(tmp_path, monkeypatch, clear_cache):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("APP_ENV", "test")
 

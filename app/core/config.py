@@ -2,7 +2,6 @@ import os
 from functools import lru_cache
 from typing import Any
 
-from pydantic import ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict, PydanticBaseSettingsSource
 
 SUPPORTED_PROFILES = ("dev", "test", "prod")
@@ -14,6 +13,16 @@ def _get_env_files() -> tuple[str, ...]:
         raise ValueError(f"Invalid APP_ENV profile '{profile}'. Supported profiles: {SUPPORTED_PROFILES}")
     
     return (".env", f".env.{profile}")
+
+
+def _get_test_profile_defaults() -> dict[str, str]:
+    if os.getenv("APP_ENV", "dev") != "test":
+        return {}
+    
+    return {
+        "POSTGRES_DSN": "postgresql+asyncpg://postgres:postgres@127.0.0.1:5432/app",
+        "REDIS_DSN": "redis://127.0.0.1:6379/0",
+    }
 
 
 class Settings(BaseSettings):
@@ -28,6 +37,13 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+
+    def __init__(self, **values: Any) -> None:
+        defaults = _get_test_profile_defaults()
+        for key, default_value in defaults.items():
+            if key not in values:
+                values[key] = default_value
+        super().__init__(**values)
 
     @classmethod
     def settings_customise_sources(
