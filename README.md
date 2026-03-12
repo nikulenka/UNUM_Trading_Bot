@@ -58,3 +58,42 @@ docker compose down
 ```bash
 docker compose down -v
 ```
+
+## CI
+
+GitHub Actions uses:
+- Python `3.13`
+- pinned `uv` `0.5.30`
+- `uv sync --frozen`
+
+CI starts real `postgres` and `redis`
+CI waits explicitly for both services before `pytest`
+
+### Sprint 1 test scope
+
+included:
+- smoke
+- unit
+- lightweight integration
+
+excluded:
+- e2e
+- load
+
+CI command:
+```bash
+pytest -m "(smoke or unit or integration) and not e2e and not load"
+```
+
+## Releases
+
+Release tags must be created from commits already merged into `main`
+
+Tag format:
+```bash
+vX.Y.Z
+```
+
+Pushing a release tag publishes the Docker image to GHCR:
+- `ghcr.io/<owner>/<repo>:vX.Y.Z`
+- `ghcr.io/<owner>/<repo>:latest`
