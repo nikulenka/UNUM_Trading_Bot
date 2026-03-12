@@ -14,10 +14,15 @@ dependencies = [
 dev = [
     "httpx>=0.28.1",
     "pytest>=9.0.2",
+    "ruff>=0.15.5",
 ]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
     "smoke: quick smoke checks",
+    "unit: isolated unit/config tests",
+    "integration: lightweight integration tests",
+    "e2e: heavy end-to-end tests excluded from Sprint 1 CI",
+    "load: load/performance tests excluded from Sprint 1 CI",
 ]
