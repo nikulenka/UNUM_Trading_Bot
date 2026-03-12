@@ -1,11 +1,12 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir uv
+ARG UV_VERSION=0.5.30
+RUN pip install --no-cache-dir uv==${UV_VERSION}
 
 COPY pyproject.toml uv.lock ./
 
