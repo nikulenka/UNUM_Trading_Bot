@@ -1,0 +1,6 @@
+*__pycache__*
+*aider*
+.env
+.env.dev
+.env.test
+.env.prod
