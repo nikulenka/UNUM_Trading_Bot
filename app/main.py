@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 
 import logging
@@ -6,6 +5,7 @@ from contextlib import asynccontextmanager
 
 from app.api.health import router as health_router
 from app.api.ready import router as ready_router
+from app.api.status import router as status_router
 from app.core.config import get_settings, validate_settings
 from app.core.logging import setup_logging
 
@@ -26,5 +26,6 @@ app = FastAPI(title="AI Bot", lifespan=lifespan)
 
 app.include_router(health_router)
 app.include_router(ready_router)
+app.include_router(status_router)
 
 logger.info("Application configured successfully")
