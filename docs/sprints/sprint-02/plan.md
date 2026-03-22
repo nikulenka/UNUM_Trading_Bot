@@ -68,10 +68,12 @@ Use only three streams:
 Each event should include an `event_type` field so one stream can carry multiple event kinds.
 
 ### Storage
-Use only two new tables:
+Use SQLAlchemy ORM models backed by PostgreSQL tables:
 
 - `ohlcv_candles`
 - `backfill_state`
+
+Use Alembic migrations for schema changes.
 
 ### Feed health
 Use only three statuses:
@@ -168,17 +170,17 @@ Required fields:
 **Goal:** backfill closed `15m` candles for `BTC_USDT` into Postgres and resume after interruption.
 
 ### Implement
-- [ ] Add `ohlcv_candles` table with:
+- [ ] Define SQLAlchemy ORM model for `ohlcv_candles` with:
   - `instrument_id`
   - timeframe
   - candle open time
   - open, high, low, close
   - volume fields
-- [ ] Add DB-level uniqueness on:
+- [ ] Add Alembic migration for `ohlcv_candles` and the uniqueness constraint on:
   - `instrument_id`
   - timeframe
   - candle open time
-- [ ] Add `backfill_state` table with:
+- [ ] Define SQLAlchemy ORM model for `backfill_state` with:
   - `instrument_id`
   - timeframe
   - requested start
@@ -186,6 +188,7 @@ Required fields:
   - last completed candle time
   - status
   - last error
+- [ ] Add Alembic migration for `backfill_state`
 - [ ] Build a REST client for Gate.io historical candles
 - [ ] Normalize returned candles into internal format
 - [ ] Skip still-open candles
