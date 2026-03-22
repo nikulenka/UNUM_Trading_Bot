@@ -1,5 +1,4 @@
 import pytest
-from pathlib import Path
 from pydantic import ValidationError
 
 import app.core.config as config_module

@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from app.api.health import router as health_router
 from app.api.ready import router as ready_router
 from app.api.status import router as status_router
-from app.core.config import get_settings, validate_settings
+from app.core.config import validate_settings
 from app.core.logging import setup_logging
 
 setup_logging("INFO")
