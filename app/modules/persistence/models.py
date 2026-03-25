@@ -115,6 +115,15 @@ class BackfillState(Base):
     )
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    def mark_successful_batch(
+        self, last_completed_candle_open_time_utc: datetime
+    ) -> None:
+        """Advance the backfill watermark after a batch persists successfully."""
+
+        self.last_completed_candle_open_time_utc = last_completed_candle_open_time_utc
+        self.status = BackfillStatus.RUNNING
+        self.last_error = None
+
 
 __all__ = [
     "BackfillState",
