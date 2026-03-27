@@ -59,6 +59,29 @@ docker compose down
 docker compose down -v
 ```
 
+## Manual Backfill Script
+
+The manual backfill runner lives in `app/modules/ingestion/backfill.py`.
+
+It backfills closed `BTC_USDT` `15m` candles into Postgres and is intentionally slow by default:
+- `--request-delay-seconds` defaults to `3.0`
+- `--batch-limit` defaults to `100`
+- it skips still-open candles
+- it resumes from the saved backfill state when one already exists
+
+Make sure `POSTGRES_DSN` is available in your environment before running it.
+
+Also, make sure alembic migrations were applied to the database:
+```bash                                                                                                                                   
+docker compose exec app alembic upgrade head
+```
+
+Example:
+
+```bash
+uv run python -m app.modules.ingestion.backfill --start-utc 2026-03-25T00:00:00Z --end-utc 2026-03-26T00:00:00Z --request-delay-seconds 5 --batch-limit 50
+```
+
 ## CI
 
 GitHub Actions uses:
