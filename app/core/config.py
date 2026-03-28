@@ -60,6 +60,9 @@ class Settings(BaseSettings):
     ws_enabled: bool = True
     ws_currency_pair: str = "BTC_USDT"
 
+    # Feed health detection
+    feed_stale_timeout_seconds: float = 60.0
+
     model_config = SettingsConfigDict(
         env_prefix="",
         case_sensitive=False,

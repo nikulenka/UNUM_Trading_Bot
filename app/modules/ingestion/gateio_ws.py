@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_GATEIO_WS_URL: Final[str] = "wss://api.gateio.ws/ws/v4/"
 DEFAULT_WS_RECONNECT_DELAY: Final[float] = 5.0
+DEFAULT_WS_MAX_RECONNECT_DELAY: Final[float] = 60.0
 
 
 class GateIOWebSocketError(GateIOClientError):
@@ -29,10 +30,13 @@ class GateIOWebSocketClient:
         *,
         base_url: str = DEFAULT_GATEIO_WS_URL,
         reconnect_delay: float = DEFAULT_WS_RECONNECT_DELAY,
+        max_reconnect_delay: float = DEFAULT_WS_MAX_RECONNECT_DELAY,
         user_agent: str = "ai-bot/1.0",
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._reconnect_delay = reconnect_delay
+        self._max_reconnect_delay = max_reconnect_delay
+        self._current_reconnect_delay = reconnect_delay
         self._headers = {"User-Agent": user_agent}
 
     async def subscribe_market_data(
@@ -75,6 +79,8 @@ class GateIOWebSocketClient:
                             data = json.loads(message)
                             event = self._parse_ws_message(data, currency_pair)
                             if event:
+                                # Reset reconnect delay on successful message
+                                self._current_reconnect_delay = self._reconnect_delay
                                 yield event
                         except json.JSONDecodeError as exc:
                             logger.warning(f"Invalid JSON in WS message: {exc}")
@@ -88,7 +94,12 @@ class GateIOWebSocketClient:
             except Exception as exc:
                 logger.error(f"Unexpected WS error: {exc}. Reconnecting...")
 
-            await asyncio.sleep(self._reconnect_delay)
+            # Exponential backoff with max cap
+            await asyncio.sleep(self._current_reconnect_delay)
+            self._current_reconnect_delay = min(
+                self._current_reconnect_delay * 2,
+                self._max_reconnect_delay,
+            )
 
     def _parse_ws_message(
         self, data: dict[str, Any], currency_pair: str
