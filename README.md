@@ -71,11 +71,6 @@ It backfills closed `BTC_USDT` `15m` candles into Postgres and is intentionally 
 
 Make sure `POSTGRES_DSN` is available in your environment before running it.
 
-Also, make sure alembic migrations were applied to the database:
-```bash                                                                                                                                   
-docker compose exec app alembic upgrade head
-```
-
 Example:
 
 ```bash

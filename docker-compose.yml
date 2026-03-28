@@ -29,9 +29,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    working_dir: /app
-    volumes:
-      - ${PWD}:/app:Z
+      target: migrate
     environment:
       APP_ENV: dev
       POSTGRES_DSN: postgresql+asyncpg://postgres:postgres@postgres:5432/app
@@ -39,13 +37,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["sh", "-c", "python -m pip install --no-cache-dir 'alembic>=1.18.4' && alembic -c /app/alembic.ini upgrade head"]    
     restart: "no"
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      target: app-runtime
     environment:
       APP_ENV: dev
       APP_PORT: 8000
@@ -71,4 +69,3 @@ services:
 
 volumes:
   postgres_data:
-  migrate_venv:

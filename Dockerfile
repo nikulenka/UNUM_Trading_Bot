@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.13-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -16,6 +16,17 @@ RUN uv export --frozen --no-dev --no-hashes -o requirements.txt \
 
 COPY app ./app
 
+FROM base AS app-runtime
+
 EXPOSE 8000
 
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-8000}"]
+
+FROM base AS migrate
+
+RUN python -m pip install --no-cache-dir "alembic>=1.18.4"
+
+COPY alembic.ini ./
+COPY alembic ./alembic
+
+CMD ["python", "-m", "alembic", "-c", "/app/alembic.ini", "upgrade", "head"]
