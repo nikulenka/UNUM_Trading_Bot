@@ -8,6 +8,7 @@ from pydantic_settings import (
 )
 
 from app.core.feed_status import FeedStatusStore
+from app.modules.ingestion.gateio_ws import DEFAULT_GATEIO_WS_URL
 
 SUPPORTED_PROFILES = ("dev", "test", "prod")
 
@@ -48,9 +49,16 @@ class Settings(BaseSettings):
     primary_tradingview_aliases: tuple[str, ...] = ("BTCUSDT", "BTC/USDT", "BTC_USDT")
     primary_timeframe: str = "15m"
 
+    # Redis Streams (from sprint plan)
     market_events_stream: str = "market.events"
     signal_events_stream: str = "signal.events"
     system_events_stream: str = "system.events"
+
+    # WebSocket Settings
+    gateio_ws_url: str = DEFAULT_GATEIO_WS_URL
+    ws_reconnect_delay: float = 5.0
+    ws_enabled: bool = True
+    ws_currency_pair: str = "BTC_USDT"
 
     model_config = SettingsConfigDict(
         env_prefix="",

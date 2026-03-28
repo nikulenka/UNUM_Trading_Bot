@@ -85,3 +85,7 @@ class FeedStatusStore:
             self.set_stale()
         else:
             self.set_down()
+
+
+# Global singleton feed status store
+feed_status_store = FeedStatusStore()

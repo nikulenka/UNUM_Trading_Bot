@@ -19,6 +19,9 @@ class FakeHTTPResponse:
     def read(self) -> bytes:
         return json.dumps(self._payload).encode("utf-8")
 
+    def getcode(self) -> int:
+        return self.status
+
     def __enter__(self) -> "FakeHTTPResponse":
         return self
 

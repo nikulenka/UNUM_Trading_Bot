@@ -10,6 +10,8 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "sqlalchemy>=2.0.48",
     "uvicorn>=0.41.0",
+    "websockets>=12.0",
+    "redis>=5.0.0",
 ]
 
 [dependency-groups]
