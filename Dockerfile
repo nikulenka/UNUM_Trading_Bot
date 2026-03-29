@@ -22,6 +22,12 @@ EXPOSE 8000
 
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT:-8000}"]
 
+FROM base AS dashboard
+
+EXPOSE 8501
+
+CMD ["sh", "-c", "streamlit run app/dashboard/app.py --server.address 0.0.0.0 --server.port ${DASHBOARD_PORT:-8501}"]
+
 FROM base AS migrate
 
 RUN python -m pip install --no-cache-dir "alembic>=1.18.4"

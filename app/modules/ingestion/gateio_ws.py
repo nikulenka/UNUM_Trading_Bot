@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import logging
 from datetime import UTC, datetime
@@ -50,9 +51,15 @@ class GateIOWebSocketClient:
 
         while True:
             try:
+                connect_kwargs: dict[str, Any] = {}
+                if "additional_headers" in inspect.signature(websockets.connect).parameters:
+                    connect_kwargs["additional_headers"] = self._headers
+                else:
+                    connect_kwargs["extra_headers"] = self._headers
+
                 async with websockets.connect(
                     self._base_url,
-                    extra_headers=self._headers,
+                    **connect_kwargs,
                 ) as ws:
                     # Subscribe to ticker
                     ticker_msg = {

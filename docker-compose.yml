@@ -67,5 +67,22 @@ services:
       start_period: 15s
     restart: unless-stopped
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dashboard
+    environment:
+      REDIS_DSN: redis://redis:6379/0
+      MARKET_EVENTS_STREAM: market.events
+      SYSTEM_EVENTS_STREAM: system.events
+      SIGNAL_EVENTS_STREAM: signal.events
+    ports:
+      - "8501:8501"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres_data:
