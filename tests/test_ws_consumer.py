@@ -7,7 +7,10 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.core.feed_status import FeedStatus, feed_status_store
-from app.modules.ingestion.ws_consumer import _run_stale_checker_once
+from app.modules.ingestion.ws_consumer import (
+    _process_market_event,
+    _run_stale_checker_once,
+)
 
 
 class FakeRedisClient:
@@ -76,6 +79,86 @@ def test_stale_checker_no_publish_when_live(reset_feed_status) -> None:
     # Should not have published (feed is still live)
     assert len(redis_client.xadd_calls) == 0
     
+    snapshot = feed_status_store.get_snapshot()
+    assert snapshot["status"] == "live"
+    assert snapshot["entries_blocked"] is False
+
+
+def test_process_market_event_publishes_live_status_when_feed_recovers(reset_feed_status) -> None:
+    """Verify recovery to live is published to system.events for the dashboard."""
+    redis_client = FakeRedisClient()
+
+    feed_status_store._state.last_message_at = datetime.now(UTC) - timedelta(seconds=70)
+    feed_status_store._state.status = FeedStatus.STALE
+    feed_status_store._state.entries_blocked = True
+
+    event = {
+        "event_type": "ticker",
+        "instrument_id": "BTC_USDT",
+        "source_symbol": "BTC_USDT",
+        "source_time_utc": datetime.now(UTC).isoformat(),
+        "ingested_at_utc": datetime.now(UTC).isoformat(),
+        "payload": "{}",
+    }
+
+    asyncio.run(
+        _process_market_event(
+            redis_client,
+            market_stream_name="market.events",
+            system_stream_name="system.events",
+            event=event,
+        )
+    )
+
+    assert len(redis_client.xadd_calls) == 2
+
+    market_stream_name, market_event = redis_client.xadd_calls[0]
+    assert market_stream_name == "market.events"
+    assert market_event == event
+
+    system_stream_name, status_event = redis_client.xadd_calls[1]
+    assert system_stream_name == "system.events"
+    assert status_event["event_type"] == "feed_status"
+    assert status_event["status"] == "live"
+    assert status_event["entries_blocked"] == "False"
+    assert "live" in status_event["message"].lower()
+
+    snapshot = feed_status_store.get_snapshot()
+    assert snapshot["status"] == "live"
+    assert snapshot["entries_blocked"] is False
+
+
+def test_process_market_event_skips_live_status_publish_when_feed_is_already_live(reset_feed_status) -> None:
+    """Verify normal live events do not spam system status updates."""
+    redis_client = FakeRedisClient()
+
+    feed_status_store._state.last_message_at = datetime.now(UTC)
+    feed_status_store._state.status = FeedStatus.LIVE
+    feed_status_store._state.entries_blocked = False
+
+    event = {
+        "event_type": "ticker",
+        "instrument_id": "BTC_USDT",
+        "source_symbol": "BTC_USDT",
+        "source_time_utc": datetime.now(UTC).isoformat(),
+        "ingested_at_utc": datetime.now(UTC).isoformat(),
+        "payload": "{}",
+    }
+
+    asyncio.run(
+        _process_market_event(
+            redis_client,
+            market_stream_name="market.events",
+            system_stream_name="system.events",
+            event=event,
+        )
+    )
+
+    assert len(redis_client.xadd_calls) == 1
+    stream_name, published_event = redis_client.xadd_calls[0]
+    assert stream_name == "market.events"
+    assert published_event == event
+
     snapshot = feed_status_store.get_snapshot()
     assert snapshot["status"] == "live"
     assert snapshot["entries_blocked"] is False

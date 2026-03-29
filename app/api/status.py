@@ -2,19 +2,14 @@ import logging
 
 from fastapi import APIRouter
 
-from app.core.feed_status import FeedStatusStore
+from app.core.feed_status import feed_status_store
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+
 @router.get("/ingestion/status")
 async def get_status() -> dict:
-    """Endpoint to get the current feed ingestion status.
-
-    Returns:
-        dict: The current status of the feed ingestion.
-    """
+    """Endpoint to get the current feed ingestion status."""
     logger.debug("Ingestion status check started")
-    store = FeedStatusStore()
-
-    return store.get_snapshot()
+    return feed_status_store.get_snapshot()
