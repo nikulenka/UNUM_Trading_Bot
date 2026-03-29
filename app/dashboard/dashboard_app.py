@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-import sys
 from typing import Any
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
 
 import pandas as pd
 import streamlit as st
 
 from app.dashboard.config import get_dashboard_settings
 from app.dashboard.streams import create_redis_client, read_recent_events
-
 
 @st.cache_resource
 def _get_redis_client(redis_dsn: str):

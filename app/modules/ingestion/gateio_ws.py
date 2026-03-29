@@ -34,7 +34,7 @@ class GateIOWebSocketClient:
         max_reconnect_delay: float = DEFAULT_WS_MAX_RECONNECT_DELAY,
         user_agent: str = "ai-bot/1.0",
     ) -> None:
-        self._base_url = base_url.rstrip("/")
+        self._base_url = base_url if base_url.endswith("/") else base_url + "/"
         self._reconnect_delay = reconnect_delay
         self._max_reconnect_delay = max_reconnect_delay
         self._current_reconnect_delay = reconnect_delay
