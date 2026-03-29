@@ -26,7 +26,7 @@ FROM base AS dashboard
 
 EXPOSE 8501
 
-CMD ["sh", "-c", "streamlit run app/dashboard/app.py --server.address 0.0.0.0 --server.port ${DASHBOARD_PORT:-8501}"]
+CMD ["sh", "-c", "python -m streamlit run app/dashboard/dashboard_app.py --server.address 0.0.0.0 --server.port ${DASHBOARD_PORT:-8501}"]
 
 FROM base AS migrate
 
