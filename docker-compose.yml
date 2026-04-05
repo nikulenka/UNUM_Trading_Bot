@@ -50,6 +50,7 @@ services:
       LOG_LEVEL: INFO
       POSTGRES_DSN: postgresql+asyncpg://postgres:postgres@postgres:5432/app
       REDIS_DSN: redis://redis:6379/0
+      TRADINGVIEW_WEBHOOK_SECRET: ${TRADINGVIEW_WEBHOOK_SECRET:-}
     ports:
       - "8000:8000"
     depends_on:

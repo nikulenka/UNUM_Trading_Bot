@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     signal_events_stream: str = "signal.events"
     system_events_stream: str = "system.events"
 
+    # TradingView webhook settings
+    tradingview_webhook_secret: str = ""
+
     # WebSocket Settings
     gateio_ws_url: str = DEFAULT_GATEIO_WS_URL
     ws_reconnect_delay: float = 5.0
